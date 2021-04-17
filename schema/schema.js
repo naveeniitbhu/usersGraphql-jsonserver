@@ -18,6 +18,8 @@ const {
 // CompanyType and UserType circular referernce error
 // Use arrow functions to avoid this since the functions get defined but is executed
 // only when the whole file is executed. 
+// we treat associations between types i.e. CompanyType and UserType as just
+// another field. 
 
 const CompanyType = new GraphQLObjectType({
   name: 'Company',
@@ -43,14 +45,18 @@ const UserType = new GraphQLObjectType({
       age: { type: GraphQLInt },
       company: { 
         type: CompanyType,
+        // resolve resolves the diff between the incoming model and data type
         resolve(parentValue, args) {
           // console.log(parentValue, args);
+          // parentValue is the value we fetched i.e. users in this case
           return axios.get(`http://localhost:3010/companies/${parentValue.companyId}`)
             .then(res => res.data);
         }
       }
   })
 });
+
+// This tells I am looking for users which is a Usertype and given id
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -99,3 +105,32 @@ module.exports = new GraphQLSchema({
 //     }
 //   }
 // }
+
+// Below default variables are declared. We cam also mandatory variables by using ! at the end of Episode
+
+// query HeroNameAndFriends($episode: Episode = JEDI) {
+//   hero(episode: $episode) {
+//     name
+//     friends {
+//       name
+//     }
+//   }
+// }
+
+// Directives can be useful to get out of situations where you otherwise would need to do string manipulation to add and remove fields in your query
+
+// query Hero($episode: Episode, $withFriends: Boolean!) {
+//   hero(episode: $episode) {
+//     name
+//     friends @include(if: $withFriends) {
+//       name
+//     }
+//   }
+// }
+// {
+//   "episode": "JEDI",
+//   "withFriends": true
+// }
+
+// we can mutate and query the new value of the field with one request.
+
