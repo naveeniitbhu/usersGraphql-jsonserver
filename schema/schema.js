@@ -7,7 +7,8 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLSchema, //takes a rootquery and returns a graphqlschema instance
-  GraphQLList
+  GraphQLList,
+  GraphQLNonNull,
 } = graphql;
 
 // const users = [
@@ -23,6 +24,7 @@ const {
 
 const CompanyType = new GraphQLObjectType({
   name: 'Company',
+  //always use arrow functions here
   fields: () => ({
     id: { type: GraphQLString },
     name: { type: GraphQLString },
@@ -85,8 +87,64 @@ const RootQuery = new GraphQLObjectType({
 // RootQuery Type -> UserType -> CompanyType
 // At first our rootquery only has access to users, so we cannot query company directly
 
+const mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    //Here, we are returning the same type but sometimes it can be different
+    addUser: {
+      type: UserType,
+      args: {
+        firstName: { type: new GraphQLNonNull(GraphQLString) },
+        age: { type: new GraphQLNonNull(GraphQLInt)},
+        companyId: { type: GraphQLString}
+      },
+      resolve(parentValue, { firstName, age }){
+        return axios.post('http://localhost:3010/users', { firstName, age})
+        .then(res => res.data)
+
+      }
+    },
+    deleteUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLString)},
+      },
+      resolve(parentValue, { id }){
+        return axios.delete(`http://localhost:3010/users/${id}`)
+        .then(res => res.data);
+
+      }
+    },
+    editUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLString)},
+        firstName: { type: GraphQLString },
+        age: { type: GraphQLInt},
+        companyId: { type: GraphQLString}
+      },
+      resolve(parentValue, args){
+        return axios.patch(`http://localhost:3010/users/${args.id}`, args)
+        .then(res => res.data)
+
+      }
+    },
+  }
+})
+
+// mutation {
+//   addUser(firstName: "fdsas",age:26){
+//     id
+//     firstName
+//     age
+//   }
+// }
+// graphql always return something even if it deleted.
+
 module.exports = new GraphQLSchema({
-  query: RootQuery
+  query: RootQuery,
+  // mutation: mutation,
+  mutation
 });
 
 
