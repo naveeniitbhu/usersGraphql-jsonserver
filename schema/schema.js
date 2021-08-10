@@ -46,10 +46,10 @@ const UserType = new GraphQLObjectType({
       firstName: { type: GraphQLString },
       age: { type: GraphQLInt },
       company: { 
-        type: CompanyType,
+        type: CompanyType,    
         // resolve resolves the diff between the incoming model and data type
         resolve(parentValue, args) {
-          // console.log(parentValue, args);
+          // console.log(parentValue, args);    parent value { id: '40', firstName: 'Alex', age: 40, companyId: '2' }
           // parentValue is the value we fetched i.e. users in this case
           return axios.get(`http://localhost:3010/companies/${parentValue.companyId}`)
             .then(res => res.data);
